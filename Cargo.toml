@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 serenity = "0.8"
+tiny_http = "0.6"
