@@ -32,6 +32,8 @@ impl EventHandler for Handler {
 
 fn main() {
 
+    thread::spawn(|| {
+
     let port = if let Ok(num) = env::var("PORT"){
                 println!("found env var PORT, setting port to {}",num);
                     num
@@ -59,6 +61,7 @@ fn main() {
     for h in handles {
         h.join().unwrap();
     }
+    });
 
     // Login with a bot token from the environment
     let mut client = Client::new(&env::var("BOT_TOKEN").expect("token"), Handler)
