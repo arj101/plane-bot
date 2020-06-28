@@ -1,4 +1,4 @@
-So... here are all the commands! :D
+So... here are all the commands! 🙂️
 
 
 ` ping `       :    just try it out.
