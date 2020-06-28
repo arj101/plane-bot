@@ -29,34 +29,42 @@ struct Handler;
 impl EventHandler for Handler {
  
     fn message(&self, ctx: Context, msg: Message) {
-        if msg.content == "p!ping" {
+
+    	let prefix = "p!";
+    	let eval_command: &str = &(prefix.to_owned() + "eval");
+    	let rand_command: &str = &(prefix.to_owned() + "random");
+
+
+        if msg.content == format!("{}ping",prefix ) {
     
             if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!") {
                 println!("Error sending message: {:?}", why);
             }
         }
-        else if msg.content == "p!hi" {
+        else if msg.content ==  format!("{}hi",prefix )  {
          
            
             if let Err(why) = msg.channel_id.say(&ctx.http, "hello!") {
                 println!("Error sending message: {:?}", why);
             }
         }
-        else if msg.content == "p!pong" {
+        else if msg.content ==  format!("{}pong",prefix )  {
   
             if let Err(why) = msg.channel_id.say(&ctx.http, "pinggggggggg!") {
                 println!("Error sending message: {:?}", why);
             }
         }
 
-        else if msg.content == "p!ok" {
+        else if msg.content ==  format!("{}ok",prefix )  {
         
             if let Err(why) = msg.channel_id.say(&ctx.http, "ok then") {
                 println!("Error sending message: {:?}", why);
             }
         }
 
-        else if msg.content == "p!help" {
+        else if msg.content ==  format!("{}help",prefix )  {
+
+
 
             println!("Somebody is asking for help! 😃");
 
@@ -82,10 +90,13 @@ impl EventHandler for Handler {
             
 
            
-        }
+       }
+       
+ 
 
 
-        else if msg.content.starts_with("p!eval"){
+
+        else if msg.content.starts_with(eval_command){
 
 
 
@@ -107,7 +118,7 @@ impl EventHandler for Handler {
            
         }
 
-        else if msg.content == "p!bye" {
+        else if msg.content == format!("{}bye",prefix ) {
          
             if let Err(why) = msg.channel_id.say(&ctx.http, "byeeee!") {
                 println!("Error sending message: {:?}", why);
@@ -117,7 +128,7 @@ impl EventHandler for Handler {
             }
         }
 
-        else if msg.content == "p!tail or head" {
+        else if msg.content == format!("{}tail or head",prefix ) {
 
         	let head = random();
 
@@ -134,7 +145,7 @@ impl EventHandler for Handler {
 
         }
 
-         else if msg.content == "p!roll" {
+         else if msg.content == format!("{}roll",prefix ) {
 
          	let mut rng = rand::thread_rng();
 
@@ -144,13 +155,17 @@ impl EventHandler for Handler {
         	
         }
 
+    
 
-         else if msg.content.starts_with("p!random") {
+
+
+         else if msg.content.starts_with(rand_command) {
 
          	let mut no_err = true;
 
          	let mut iter = msg.content.split(" ").filter(|word| word.len() >= 1);
          	let _ = iter.next();
+
          	let num1:i32 =  match iter.next() {
          		Some(num) => match num.parse::<i32>(){
          			Ok(number) => number,
@@ -214,7 +229,7 @@ impl EventHandler for Handler {
             	
         }
 
-        else if msg.content.starts_with("p!"){
+        else if msg.content.starts_with(prefix){
             if let Err(why) = msg.channel_id.say(&ctx.http, "This command doesn't exist, yet! ¯\\_(ツ)_/¯") {
                 println!("Error sending message: {:?}", why);
             }
