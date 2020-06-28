@@ -276,7 +276,15 @@ fn main() {
                     request.headers()
                 );
 
-                let response = Response::from_string("Thanks for waking me up!");
+                let wakeup_content = if let Ok(read_file) =  fs::read_to_string("./public/wakeup.html"){
+                	read_file
+                }else {
+                	String::from("WATCHING! 👀")
+                };
+
+                let mut response = Response::from_string(wakeup_content);
+                let content_type_header = tiny_http::Header::from_bytes(&b"Content-Type"[..],&b"text/html"[..]).expect("Failed creating header");
+                response.add_header(content_type_header);
                 if let Err(why) = &request.respond(response){
                     println!("Error sending response to http request : {}",why);
                 }
