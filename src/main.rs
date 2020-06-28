@@ -252,7 +252,7 @@ fn main() {
                 }
             };
 
-            let server = Server::http(format!("127.0.0.1:{}",port)).unwrap();
+            let server = Server::http(format!("0.0.0.0:{}",port)).unwrap();
 
             for request in server.incoming_requests() {
                 println!("received request! method: {:?}, url: {:?}, headers: {:?}",
