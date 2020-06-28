@@ -1,11 +1,21 @@
 
+extern crate meval;
 extern crate tiny_http;
 
-use std::sync::Arc;
-use std::thread;
+use tiny_http::{Server, Response};
+
+use std::{
+    env,
+    fs,
+    thread
+};
 
 
-use std::env;
+
+use rand::{prelude::*,Rng};
+
+
+
 
 
 
@@ -17,135 +27,88 @@ use serenity::{
 struct Handler;
 
 impl EventHandler for Handler {
-    // Set a handler for the `message` event - so that whenever a new message
-    // is received - the closure (or function) passed will be called.
-    //
-    // Event handlers are dispatched through a threadpool, and so multiple
-    // events can be dispatched simultaneously.
+ 
     fn message(&self, ctx: Context, msg: Message) {
         if msg.content == "p!ping" {
-            // Sending a message can fail, due to a network error, an
-            // authentication error, or lack of permissions to post in the
-            // channel, so log to stdout when some error happens, with a
-            // description of it.
+    
             if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!") {
                 println!("Error sending message: {:?}", why);
             }
         }
         else if msg.content == "p!hi" {
-            // Sending a message can fail, due to a network error, an
-            // authentication error, or lack of permissions to post in the
-            // channel, so log to stdout when some error happens, with a
-            // description of it.
+         
+           
             if let Err(why) = msg.channel_id.say(&ctx.http, "hello!") {
                 println!("Error sending message: {:?}", why);
             }
         }
         else if msg.content == "p!pong" {
-            // Sending a message can fail, due to a network error, an
-            // authentication error, or lack of permissions to post in the
-            // channel, so log to stdout when some error happens, with a
-            // description of it.
+  
             if let Err(why) = msg.channel_id.say(&ctx.http, "pinggggggggg!") {
                 println!("Error sending message: {:?}", why);
             }
         }
 
         else if msg.content == "p!ok" {
-            // Sending a message can fail, due to a network error, an
-            // authentication error, or lack of permissions to post in the
-            // channel, so log to stdout when some error happens, with a
-            // description of it.
+        
             if let Err(why) = msg.channel_id.say(&ctx.http, "ok then") {
                 println!("Error sending message: {:?}", why);
             }
         }
 
         else if msg.content == "p!help" {
-            // Sending a message can fail, due to a network error, an
-            // authentication error, or lack of permissions to post in the
-            // channel, so log to stdout when some error happens, with a
-            // description of it.
-            if let Err(why) = msg.channel_id.say(&ctx.http, "figure out yourself😉") {
-                println!("Error sending message: {:?}", why);
-            }
-        }
 
-        else if msg.content.starts_with("p!eval"){
+            println!("Somebody is asking for help! 😃");
 
-            let mut iter  = msg.content.split(" ").filter(|word| word.len() >= 1);
-            let _ = iter.next();
+             if let Ok(text) = fs::read_to_string("./help.md"){
+                println!("Succesfully read help.md 😄");
+                if text.len() >= 1{
+                    if let Err(why) = msg.channel_id.say(&ctx.http, text) {
+                        println!("Error sending message: {:?}", why);
+                    }
+                }else {
+                    println!("help.md is less than one character long! 🤔");
+                    if let Err(why) = msg.channel_id.say(&ctx.http, "help.md is less than one character long! 🤔") {
+                        println!("Error sending message: {:?}", why);
+                    }
+                }
 
-            let mut no_err = true;
-
-            let a = if let Ok(num) = iter.next().unwrap_or_default().parse::<f64>(){
-                num
-            }else{
-                if let Err(why) = msg.channel_id.say(&ctx.http, "thats not valid 64bit float, i guess :/") {
+            }else {
+                println!("Error reading help.md! 🤔");
+                if let Err(why) = msg.channel_id.say(&ctx.http, "Error reading help.md! 🤔\nFigure it out yourself 😉") {
                     println!("Error sending message: {:?}", why);
-                };
-                no_err = false;
-                0.0f64
-            };
-
-            if no_err{
-            
-        
-            let symbol = iter.next().unwrap_or_default();
-
-            let b = if let Ok(num) = iter.next().unwrap_or_default().parse::<f64>(){
-                num
-            }else{
-                if let Err(why) = msg.channel_id.say(&ctx.http, "thats not valid 64bit float, i guess :/") {
-                    println!("Error sending message: {:?}", why);
-                };
-                no_err = false;
-                0.0f64
-            };
-            
-
-            println!("{} {} {}",a,symbol,b);
-            
-            if no_err{
-            match symbol{
-                "+" => {
-                    if let Err(why) = msg.channel_id.say(&ctx.http, format!("Its {} !",a+b)) {
-                        println!("Error sending message: {:?}", why);
-                    }
-                }
-
-                "-" => {
-                    if let Err(why) = msg.channel_id.say(&ctx.http, format!("Its {} !",a-b)) {
-                        println!("Error sending message: {:?}", why);
-                    }
-                }
-                "/" => {
-                    if let Err(why) = msg.channel_id.say(&ctx.http, format!("Its {} !",a/b)) {
-                        println!("Error sending message: {:?}", why);
-                    }
-                }
-                "*" => {
-                    if let Err(why) = msg.channel_id.say(&ctx.http, format!("Its {} !",a*b)) {
-                        println!("Error sending message: {:?}", why);
-                    }
-                }
-                _ => {
-                    if let Err(why) = msg.channel_id.say(&ctx.http, "idk what to do!") {
-                        println!("Error sending message: {:?}", why);
-                    }
                 }
             }
-        }
-        }
+            
 
            
         }
 
+
+        else if msg.content.starts_with("p!eval"){
+
+
+
+            match meval::eval_str(crop_letters(&msg.content, 6)){
+                Ok(res) => {
+                    println!("{}",res);
+                    if let Err(why) = msg.channel_id.say(&ctx.http,res) {
+                                       println!("Error sending message: {:?}", why);
+                    }
+                },
+                Err(why) => {
+                    println!("error while parsing");
+                    println!("{}",why);
+                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("Err: {}",why)) {
+                        println!("Error sending message: {:?}", why);
+                    }
+                }
+            }
+           
+        }
+
         else if msg.content == "p!bye" {
-            // Sending a message can fail, due to a network error, an
-            // authentication error, or lack of permissions to post in the
-            // channel, so log to stdout when some error happens, with a
-            // description of it.
+         
             if let Err(why) = msg.channel_id.say(&ctx.http, "byeeee!") {
                 println!("Error sending message: {:?}", why);
             }
@@ -153,6 +116,111 @@ impl EventHandler for Handler {
                 println!("Error sending message: {:?}", why);
             }
         }
+
+        else if msg.content == "p!tail or head" {
+
+        	let head = random();
+
+        	if head{
+        		if let Err(why) = msg.channel_id.say(&ctx.http, "Head!") {
+                println!("Error sending message: {:?}", why);
+            }
+        	}else{
+
+        	if let Err(why) = msg.channel_id.say(&ctx.http, "Tail!") {
+                println!("Error sending message: {:?}", why);
+            }
+           }
+
+        }
+
+         else if msg.content == "p!roll" {
+
+         	let mut rng = rand::thread_rng();
+
+         	if let Err(why) = msg.channel_id.say(&ctx.http, format!("You got {} !",rng.gen_range(1,7)) ) {
+                println!("Error sending message: {:?}", why);
+            }
+        	
+        }
+
+
+         else if msg.content.starts_with("p!random") {
+
+         	let mut no_err = true;
+
+         	let mut iter = msg.content.split(" ").filter(|word| word.len() >= 1);
+         	let _ = iter.next();
+         	let num1:i32 =  match iter.next() {
+         		Some(num) => match num.parse::<i32>(){
+         			Ok(number) => number,
+         			Err(err) => {
+         				no_err = false;
+         				println!("Error while parsing to i32", );
+         				println!("Err: {}",err );
+         				if let Err(why) = msg.channel_id.say(&ctx.http,"Error while parsing 32bit interger" ) {
+               				println!("Error sending message: {:?}", why);
+             			};
+            		
+         				-1i32
+         			}
+         		}
+         		None => {
+         			no_err = false;
+         			println!("Error: Lower range not found");
+         		
+         				if let Err(why) = msg.channel_id.say(&ctx.http,"Lower range nor found" ) {
+               				println!("Error sending message: {:?}", why);
+             		    };
+            			
+         			-1i32
+         		}
+         	};
+
+         	let num2:i32 =  match iter.next() {
+         		Some(num) => match num.parse::<i32>(){
+         			Ok(number) => number,
+         			Err(err) => {
+         				no_err = false;
+         				println!("Error while parsing to i32");
+         				if let Err(why) = msg.channel_id.say(&ctx.http,"Error while parsing 32bit interger" ) {
+               				println!("Error sending message: {:?}", why);
+             		    };
+         				println!("Err: {}",err );
+         				-1i32
+         			}
+         		},
+         		None => {
+         			no_err = false;
+         			println!("Error: Higher range not found" );
+  
+         			if let Err(why) = msg.channel_id.say(&ctx.http,"Higher range nor found" ) {
+               			println!("Error sending message: {:?}", why);
+             		};
+            			
+         			-1i32
+         		}
+         	};
+
+         	if no_err{
+
+
+         	let mut rng = rand::thread_rng();
+
+         	if let Err(why) = msg.channel_id.say(&ctx.http, format!("You got {} !",rng.gen_range(num1,num2)) ) {
+                println!("Error sending message: {:?}", why);
+              };
+            };
+            	
+        }
+
+        else if msg.content.starts_with("p!"){
+            if let Err(why) = msg.channel_id.say(&ctx.http, "This command doesn't exist, yet! ¯\\_(ツ)_/¯") {
+                println!("Error sending message: {:?}", why);
+            }
+        }
+
+
     }
 
     // Set a handler to be called on the `ready` event. This is called when a
@@ -169,37 +237,38 @@ impl EventHandler for Handler {
 
 fn main() {
 
-    thread::spawn(|| {
+    thread::spawn(
+        ||{
 
-    let port = if let Ok(num) = env::var("PORT"){
-                println!("found env var PORT, setting port to {}",num);
-                    num
-                }else {
-                    println!("cannot find env var PORT, defaulting to 3000");
+            let port = match env::var("PORT"){
+                Ok(port) => {
+                    println!("Found env var PORT : {}",port);
+                    port
+                },
+                Err(why) => {
+                    println!("Error: {}",why);
+                    println!("Defaulting to port 3000");
                     String::from("3000")
-                };
+                }
+            };
 
-    let server = Arc::new(tiny_http::Server::http(format!("127.0.0.1:{}",port)).unwrap());
-    println!("Now listening on port {}",port);
+            let server = Server::http(format!("127.0.0.1:{}",port)).unwrap();
 
-    let mut handles = Vec::new();
+            for request in server.incoming_requests() {
+                println!("received request! method: {:?}, url: {:?}, headers: {:?}",
+                    request.method(),
+                    request.url(),
+                    request.headers()
+                );
 
-    for _ in 0 .. 4 {
-        let server = server.clone();
-
-        handles.push(thread::spawn(move || {
-            for rq in server.incoming_requests() {
-                let response = tiny_http::Response::from_string("watching...👀".to_string());
-                let _ = rq.respond(response);
+                let response = Response::from_string("Thanks for waking me up!");
+                if let Err(why) = &request.respond(response){
+                    println!("Error sending response to http request : {}",why);
+                }
             }
-        }));
-    }
-
-    for h in handles {
-        h.join().unwrap();
-    }
-    });
-
+        }
+    );
+   
     let token = env::var("BOT_TOKEN")
     .expect("Expected a token in the environment");
 
@@ -207,5 +276,13 @@ fn main() {
 
     if let Err(why) = client.start() {
         println!("Client error: {:?}", why);
+    }
+}
+
+
+fn crop_letters(s: &str, pos: usize) -> &str {
+    match s.char_indices().skip(pos).next() {
+        Some((pos, _)) => &s[pos..],
+        None => "",
     }
 }
