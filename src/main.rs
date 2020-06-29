@@ -32,8 +32,8 @@ impl EventHandler for Handler {
 
     	let prefix = "p!";
     	let eval_command: &str = &(prefix.to_owned() + "eval");
-    	let rand_command: &str = &(prefix.to_owned() + "random");
-
+        let rand_command: &str = &(prefix.to_owned() + "random");
+        let search_command: &str = &(prefix.to_owned() + "search");
 
         if msg.content == format!("{}ping",prefix ) {
     
@@ -227,6 +227,78 @@ impl EventHandler for Handler {
               };
             };
             	
+        }
+
+        else if msg.content.starts_with(search_command){
+
+            let mut iter = msg.content.split("\"").filter(|word| word.len() >= 1);
+            let _ = iter.next();
+            let keyword = if let Some(key) = iter.next(){
+                                key
+                            }else {
+                                "Airbus A350"
+                            };
+
+            let mut keyword_new = String::new();
+
+            for word in keyword.split(" ").filter(|word| word.len() >= 1){
+                keyword_new.push_str(word);
+                keyword_new.push_str("+");
+            }
+
+                        
+
+            let mut search_engine:String = if let Some(engine) = iter.next(){
+                                    engine.to_lowercase()
+                                }else{
+                                    String::from("duckduckgo")
+                                };
+
+            search_engine.retain(|c|  c !=' ');
+
+
+            let  search_engine = search_engine.as_str();
+
+        
+
+
+
+            println!("{} {}",keyword,search_engine);
+                
+           match search_engine {
+               "duckduckgo" => {
+                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://duckduckgo.com/?q={}",keyword_new)) {
+                        println!("Error sending message: {:?}", why);
+                    }
+                },
+
+                "bing" => {
+                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://www.bing.com/search?q={}",keyword_new)) {
+                        println!("Error sending message: {:?}", why);
+                    }
+                },
+                "google" => {
+                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://google.com/search?q={}",keyword_new)) {
+                        println!("Error sending message: {:?}", why);
+                    }
+                },
+
+                "wikipedia" => {
+                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://en.wikipedia.org/wiki/{}",keyword_new)) {
+                        println!("Error sending message: {:?}", why);
+                    }
+                },
+
+                _=> {
+                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://duckduckgo.com/?q={}",keyword_new)) {
+                        println!("Error sending message: {:?}", why);
+                    }
+                }
+           }
+            
+            
+
+
         }
 
         else if msg.content.starts_with(prefix){
