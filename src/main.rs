@@ -246,6 +246,8 @@ impl EventHandler for Handler {
                 keyword_new.push_str("+");
             }
 
+            keyword_new.pop();
+
                         
 
             let mut search_engine:String = if let Some(engine) = iter.next(){
@@ -327,14 +329,18 @@ fn main() {
     thread::spawn(
         ||{
 
+            let mut ip:&str;
+
             let port = match env::var("PORT"){
                 Ok(port) => {
                     println!("Found env var PORT : {}",port);
+                    ip = "0.0.0.0";
                     port
                 },
                 Err(why) => {
                     println!("Error: {}",why);
                     println!("Defaulting to port 3000");
+                    ip="127.0.0.0";
                     String::from("3000")
                 }
             };
