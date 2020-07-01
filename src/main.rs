@@ -20,7 +20,7 @@ use rand::{prelude::*,Rng};
 
 
 use serenity::{
-    model::{channel::Message, gateway::Ready},
+    model::{channel::{Message,Embed}, gateway::Ready},
     prelude::*,
 };
 
@@ -231,22 +231,28 @@ impl EventHandler for Handler {
 
         else if msg.content.starts_with(search_command){
 
-            let mut iter = msg.content.split("\"").filter(|word| word.len() >= 1);
+            let mut iter = msg.content.split("\"")
+            .flat_map(|message| message.split("“"))
+                .flat_map(|message| message.split("\n"))
+                    .flat_map(|message| message.split("”"))
+                        .filter(|word| word.len() >= 1);
+                        
             let _ = iter.next();
-            let keyword = if let Some(key) = iter.next(){
+            let  keyword = if let Some(key) = iter.next(){
                                 key
                             }else {
                                 "Airbus A350"
                             };
 
-            let mut keyword_new = String::new();
 
-            for word in keyword.split(" ").filter(|word| word.len() >= 1){
-                keyword_new.push_str(word);
-                keyword_new.push_str("+");
-            }
+            // let mut keyword_new = String::new();
 
-            keyword_new.pop();
+            // for word in keyword.split(" ").filter(|word| word.len() >= 1){
+            //     keyword_new.push_str(word);
+            //     keyword_new.push_str("+");
+            // }
+
+            // keyword_new.pop();
 
                         
 
@@ -261,38 +267,40 @@ impl EventHandler for Handler {
 
             let  search_engine = search_engine.as_str();
 
-        
-
-
 
             println!("{} {}",keyword,search_engine);
                 
            match search_engine {
                "duckduckgo" => {
-                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://duckduckgo.com/?q={}",keyword_new)) {
+                   let keyword = keyword.replace(" ","+");
+                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://duckduckgo.com/?q={}",keyword)) {
                         println!("Error sending message: {:?}", why);
                     }
                 },
 
                 "bing" => {
-                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://www.bing.com/search?q={}",keyword_new)) {
+                    let keyword = keyword.replace(" ","+");
+                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://www.bing.com/search?q={}",keyword)) {
                         println!("Error sending message: {:?}", why);
                     }
                 },
                 "google" => {
-                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://google.com/search?q={}",keyword_new)) {
+                    let keyword = keyword.replace(" ","+");
+                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://google.com/search?q={}",keyword)) {
                         println!("Error sending message: {:?}", why);
                     }
                 },
 
                 "wikipedia" => {
-                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://en.wikipedia.org/wiki/{}",keyword_new)) {
+                    let keyword = keyword.replace(" ","_");
+                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://en.wikipedia.org/wiki/{}",keyword)) {
                         println!("Error sending message: {:?}", why);
                     }
                 },
 
                 _=> {
-                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://duckduckgo.com/?q={}",keyword_new)) {
+                    let keyword = keyword.replace(" ","+");
+                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://duckduckgo.com/?q={}",keyword)) {
                         println!("Error sending message: {:?}", why);
                     }
                 }
@@ -300,6 +308,36 @@ impl EventHandler for Handler {
             
             
 
+
+        }
+
+        else if msg.content == "p!test"{
+            
+                    let msg = msg.channel_id.send_message(&ctx.http, |m| {
+                        m.content("Hello, World!");
+                        m.embed(|e| {
+                            e.title("This is a title");
+                            e.description("This is a description");
+                            e.image("attachment://ferris_eyes.png");
+                            e.fields(vec![
+                                ("This is the first field", "This is a field body", true),
+                                ("This is the second field", "Both of these fields are inline", true),
+                            ]);
+                            e.field("This is the third", "This is not an inline field", false);
+                            e.footer(|f| {
+                                f.text("This is a footer");
+        
+                                f
+                            });
+        
+                            e
+                        });
+                        m
+                    });
+        
+                    if let Err(why) = msg {
+                        println!("Error sending message: {:?}", why);
+                    }
 
         }
 
