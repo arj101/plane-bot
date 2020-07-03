@@ -1,13 +1,16 @@
 
 extern crate meval;
 extern crate tiny_http;
+extern crate webscreenshotlib;
 
 use tiny_http::{Server, Response};
+
 
 use std::{
     env,
     fs,
-    thread
+    thread,
+    time
 };
 
 
@@ -29,7 +32,6 @@ struct Handler;
 impl EventHandler for Handler {
  
     fn message(&self, ctx: Context, msg: Message) {
-
        
 
         let mut cmd_found = true;
@@ -44,9 +46,6 @@ impl EventHandler for Handler {
         };
 
 
-
-
-    //    const  command:&str =  msg.content.split(" ").flat_map(|word| word.split("\n")).filter(|word| word.len() >= 1).next().unwrap_or_default();
 
 
    
@@ -303,6 +302,18 @@ impl EventHandler for Handler {
                     if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://duckduckgo.com/?q={}",keyword)) {
                         println!("Error sending message: {:?}", why);
                     }
+                    let link = format!("https://duckduckgo.com/?q={}",keyword);
+
+                    let image_data = webscreenshotlib::screenshot_tab(
+                        link.as_str(),
+                        webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
+        
+                    if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
+                        println!("Error: {}",why);
+                    }
+        
+        
+                    let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
                 },
 
                 "bing" => {
@@ -310,12 +321,41 @@ impl EventHandler for Handler {
                     if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://www.bing.com/search?q={}",keyword)) {
                         println!("Error sending message: {:?}", why);
                     }
+
+                    let link = format!("https://www.bing.com/search?q={}",keyword);
+
+                    let image_data = webscreenshotlib::screenshot_tab(
+                        link.as_str(),
+                        webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
+        
+                    if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
+                        println!("Error: {}",why);
+                    }
+        
+        
+                    let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
                 },
                 "google" => {
+
+           
                     let keyword = keyword.replace(" ","+");
                     if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://google.com/search?q={}",keyword)) {
                         println!("Error sending message: {:?}", why);
                     }
+
+                    let link = format!("https://google.com/search?q={}",keyword);
+
+                    let image_data = webscreenshotlib::screenshot_tab(
+                        link.as_str(),
+                        webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
+        
+                    if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
+                        println!("Error: {}",why);
+                    }
+        
+        
+                    let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
+
                 },
 
                 "wikipedia" => {
@@ -323,6 +363,18 @@ impl EventHandler for Handler {
                     if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://en.wikipedia.org/wiki/{}",keyword)) {
                         println!("Error sending message: {:?}", why);
                     }
+                    let link = format!("https://en.wikipedia.org/wiki/{}",keyword);
+
+                    let image_data = webscreenshotlib::screenshot_tab(
+                        link.as_str(),
+                        webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
+        
+                    if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
+                        println!("Error: {}",why);
+                    }
+        
+        
+                    let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
                 },
 
                 _=> {
@@ -330,6 +382,18 @@ impl EventHandler for Handler {
                     if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://duckduckgo.com/?q={}",keyword)) {
                         println!("Error sending message: {:?}", why);
                     }
+                    let link = format!("https://duckduckgo.com/?q={}",keyword);
+
+                    let image_data = webscreenshotlib::screenshot_tab(
+                        link.as_str(),
+                        webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
+        
+                    if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
+                        println!("Error: {}",why);
+                    }
+        
+        
+                    let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
                 }
            }
 
@@ -338,31 +402,48 @@ impl EventHandler for Handler {
 
 
         _ if _test_command == command=> {
-            let msg = msg.channel_id.send_message(&ctx.http, |m| {
-                m.content("Hello, World!");
-                m.embed(|e| {
-                    e.title("This is a title");
-                    e.description("This is a description");
-                    e.image("attachment://ferris_eyes.png");
-                    e.fields(vec![
-                        ("This is the first field", "This is a field body", true),
-                        ("This is the second field", "Both of these fields are inline", true),
-                    ]);
-                    e.field("This is the third", "This is not an inline field", false);
-                    e.footer(|f| {
-                        f.text("This is a footer");
 
-                        f
-                    });
+            let image_data = webscreenshotlib::screenshot_tab(
+                "https://plane-bot.herokuapp.com",
+                webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
 
-                    e
-                });
-                m
-            });
-
-            if let Err(why) = msg {
-                println!("Error sending message: {:?}", why);
+            if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
+                println!("Error: {}",why);
             }
+
+
+            let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
+
+
+            // let sec = time::Duration::from_secs(1u64);
+
+            // thread::sleep(sec);
+
+            // let msg = msg.channel_id.send_message(&ctx.http, |m| {
+            //     m.content("Hello, World!");
+            //     m.embed(|e| {
+            //         e.title("This is a title");
+            //         e.description("This is a description");
+            //         e.image("attachment://screenshot.png");
+            //         e.fields(vec![
+            //             ("This is the first field", "This is a field body", true),
+            //             ("This is the second field", "Both of these fields are inline", true),
+            //         ]);
+            //         e.field("This is the third", "This is not an inline field", false);
+            //         e.footer(|f| {
+            //             f.text("This is a footer");
+
+            //             f
+            //         });
+
+            //         e
+            //     });
+            //     m
+            // });
+
+            // if let Err(why) = msg {
+            //     println!("Error sending message: {:?}", why);
+            // }
 
             
 
