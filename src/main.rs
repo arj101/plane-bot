@@ -30,143 +30,180 @@ impl EventHandler for Handler {
  
     fn message(&self, ctx: Context, msg: Message) {
 
-    	let prefix = "p!";
-    	let eval_command: &str = &(prefix.to_owned() + "eval");
-        let rand_command: &str = &(prefix.to_owned() + "random");
-        let search_command: &str = &(prefix.to_owned() + "search");
-
-        if msg.content == format!("{}ping",prefix ) {
-    
-            if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!") {
-                println!("Error sending message: {:?}", why);
-            }
-        }
-        else if msg.content ==  format!("{}hi",prefix )  {
-         
-           
-            if let Err(why) = msg.channel_id.say(&ctx.http, "hello!") {
-                println!("Error sending message: {:?}", why);
-            }
-        }
-        else if msg.content ==  format!("{}pong",prefix )  {
-  
-            if let Err(why) = msg.channel_id.say(&ctx.http, "pinggggggggg!") {
-                println!("Error sending message: {:?}", why);
-            }
-        }
-
-        else if msg.content ==  format!("{}ok",prefix )  {
-        
-            if let Err(why) = msg.channel_id.say(&ctx.http, "ok then") {
-                println!("Error sending message: {:?}", why);
-            }
-        }
-
-        else if msg.content ==  format!("{}help",prefix )  {
-
-
-
-            println!("Somebody is asking for help! 😃");
-
-             if let Ok(text) = fs::read_to_string("./help.md"){
-                println!("Succesfully read help.md 😄");
-                if text.len() >= 1{
-                    if let Err(why) = msg.channel_id.say(&ctx.http, text) {
-                        println!("Error sending message: {:?}", why);
-                    }
-                }else {
-                    println!("help.md is less than one character long! 🤔");
-                    if let Err(why) = msg.channel_id.say(&ctx.http, "help.md is less than one character long! 🤔") {
-                        println!("Error sending message: {:?}", why);
-                    }
-                }
-
-            }else {
-                println!("Error reading help.md! 🤔");
-                if let Err(why) = msg.channel_id.say(&ctx.http, "Error reading help.md! 🤔\nFigure it out yourself 😉") {
-                    println!("Error sending message: {:?}", why);
-                }
-            }
-            
-
-           
-       }
        
+
+        let mut cmd_found = true;
+
+        let command = match msg.content.split(" ").flat_map(|word| word.split("\n")).filter(|word| word.len() >= 1).next(){
+            Some(cmd) => cmd,
+            None => {
+                cmd_found = false;
+                "a781gh487c892c2ubgy"
+            }
+
+        };
+
+
+
+
+    //    const  command:&str =  msg.content.split(" ").flat_map(|word| word.split("\n")).filter(|word| word.len() >= 1).next().unwrap_or_default();
+
+
+   
+
+      
+
+        let prefix                 = "p!";
+
+        let _ping_command          = format!("{}ping",prefix);
+        let _hi_command            = format!("{}hi",prefix);
+        let _pong_command          = format!("{}pong",prefix);
+        let _ok_command            = format!("{}ok",prefix);
+        let _help_command          = format!("{}help",prefix);
+        let _eval_command          = format!("{}eval",prefix);
+        let _bye_command           = format!("{}bye",prefix);
+        let _tail_or_head_command  = format!("{}tail or head",prefix);
+        let _roll_command          = format!("{}roll",prefix);
+        let _random_command        = format!("{}random",prefix);
+        let _search_command        = format!("{}search",prefix);
+        let _test_command          = format!("{}test",prefix);
  
 
 
 
-        else if msg.content.starts_with(eval_command){
+        match command{
+
+            _ if  _ping_command == command => {
+                if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!") {
+                    println!("Error sending message: {:?}", why);
+                };
+
+                
+                
+            },
 
 
+            _ if _hi_command == command => {
+                if let Err(why) = msg.channel_id.say(&ctx.http, "hello!") {
+                    println!("Error sending message: {:?}", why);
+                };
 
-            match meval::eval_str(crop_letters(&msg.content, 6)){
-                Ok(res) => {
-                    println!("{}",res);
-                    if let Err(why) = msg.channel_id.say(&ctx.http,res) {
-                                       println!("Error sending message: {:?}", why);
+                
+            },
+
+
+            _ if _pong_command == command => {
+
+                if let Err(why) = msg.channel_id.say(&ctx.http, "pinggggggggg!") {
+                    println!("Error sending message: {:?}", why);
+                };
+
+                
+            },
+
+            _ if _ok_command == command => {
+
+                if let Err(why) = msg.channel_id.say(&ctx.http, "ok then") {
+                    println!("Error sending message: {:?}", why);
+                };
+
+                
+            },
+
+            _ if _help_command == command => {
+
+                println!("Somebody is asking for help! 😃");
+
+                if let Ok(text) = fs::read_to_string("./help.md"){
+                    println!("Succesfully read help.md 😄");
+                    if text.len() >= 1{
+                        if let Err(why) = msg.channel_id.say(&ctx.http, text) {
+                            println!("Error sending message: {:?}", why);
+                        }
+                    }else {
+                        println!("help.md is less than one character long! 🤔");
+                        if let Err(why) = msg.channel_id.say(&ctx.http, "help.md is less than one character long! 🤔") {
+                            println!("Error sending message: {:?}", why);
                     }
-                },
-                Err(why) => {
-                    println!("error while parsing");
-                    println!("{}",why);
-                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("Err: {}",why)) {
+                };
+
+                }else {
+                    println!("Error reading help.md! 🤔");
+                    if let Err(why) = msg.channel_id.say(&ctx.http, "Error reading help.md! 🤔\nFigure it out yourself 😉") {
                         println!("Error sending message: {:?}", why);
                     }
-                }
-            }
-           
-        }
+                };
 
-        else if msg.content == format!("{}bye",prefix ) {
-         
-            if let Err(why) = msg.channel_id.say(&ctx.http, "byeeee!") {
-                println!("Error sending message: {:?}", why);
-            }
-            if let Err(why) = msg.channel_id.say(&ctx.http, "👋") {
-                println!("Error sending message: {:?}", why);
-            }
-        }
-
-        else if msg.content == format!("{}tail or head",prefix ) {
-
-        	let head = random();
-
-        	if head{
-        		if let Err(why) = msg.channel_id.say(&ctx.http, "Head!") {
-                println!("Error sending message: {:?}", why);
-            }
-        	}else{
-
-        	if let Err(why) = msg.channel_id.say(&ctx.http, "Tail!") {
-                println!("Error sending message: {:?}", why);
-            }
-           }
-
-        }
-
-         else if msg.content == format!("{}roll",prefix ) {
-
-         	let mut rng = rand::thread_rng();
-
-         	if let Err(why) = msg.channel_id.say(&ctx.http, format!("You got {} !",rng.gen_range(1,7)) ) {
-                println!("Error sending message: {:?}", why);
-            }
-        	
-        }
-
-    
+                
+            },
 
 
+            _ if _eval_command == command => {
+                match meval::eval_str(crop_letters(&msg.content, 6)){
+                    Ok(res) => {
+                        println!("{}",res);
+                        if let Err(why) = msg.channel_id.say(&ctx.http,res) {
+                            println!("Error sending message: {:?}", why);
+                        };
+                    },
+                    Err(why) => {
+                        println!("error while parsing");
+                        println!("{}",why);
+                        if let Err(why) = msg.channel_id.say(&ctx.http,format!("Err: {}",why)) {
+                            println!("Error sending message: {:?}", why);
+                        };
+                    }
+                };
 
-         else if msg.content.starts_with(rand_command) {
+                
+            },
 
-         	let mut no_err = true;
 
-         	let mut iter = msg.content.split(" ").filter(|word| word.len() >= 1);
-         	let _ = iter.next();
+            _ if _bye_command == command => {
+                if let Err(why) = msg.channel_id.say(&ctx.http, "byeeee!") {
+                    println!("Error sending message: {:?}", why);
+                };
+                if let Err(why) = msg.channel_id.say(&ctx.http, "👋") {
+                    println!("Error sending message: {:?}", why);
+                };
 
-         	let num1:i32 =  match iter.next() {
+                
+            },
+
+
+            _ if _tail_or_head_command == command => {
+                let head = random();
+
+                if head{
+                    if let Err(why) = msg.channel_id.say(&ctx.http, "Head!") {
+                        println!("Error sending message: {:?}", why);
+                    }
+                }else{
+                    if let Err(why) = msg.channel_id.say(&ctx.http, "Tail!") {
+                        println!("Error sending message: {:?}", why);
+                    };
+                };
+                
+            },
+
+            _ if _roll_command == command=>  {
+                let mut rng = rand::thread_rng();
+
+         	    if let Err(why) = msg.channel_id.say(&ctx.http, format!("You got {} !",rng.gen_range(1,7)) ) {
+                    println!("Error sending message: {:?}", why);
+                };
+
+                
+            },
+
+
+            _ if _random_command == command => {
+            	let mut no_err = true;
+
+         	    let mut iter = msg.content.split(" ").filter(|word| word.len() >= 1);
+         	    let _ = iter.next();
+
+         	    let num1:i32 =  match iter.next() {
          		Some(num) => match num.parse::<i32>(){
          			Ok(number) => number,
          			Err(err) => {
@@ -179,7 +216,7 @@ impl EventHandler for Handler {
             		
          				-1i32
          			}
-         		}
+         		},
          		None => {
          			no_err = false;
          			println!("Error: Lower range not found");
@@ -189,8 +226,8 @@ impl EventHandler for Handler {
              		    };
             			
          			-1i32
-         		}
-         	};
+         		 }
+         	    };
 
          	let num2:i32 =  match iter.next() {
          		Some(num) => match num.parse::<i32>(){
@@ -226,11 +263,11 @@ impl EventHandler for Handler {
                 println!("Error sending message: {:?}", why);
               };
             };
-            	
-        }
+            
+            
+        },
 
-        else if msg.content.starts_with(search_command){
-
+        _ if _search_command == command=> {
             let mut iter = msg.content.split("\"")
             .flat_map(|message| message.split("“"))
                 .flat_map(|message| message.split("\n"))
@@ -243,16 +280,6 @@ impl EventHandler for Handler {
                             }else {
                                 "Airbus A350"
                             };
-
-
-            // let mut keyword_new = String::new();
-
-            // for word in keyword.split(" ").filter(|word| word.len() >= 1){
-            //     keyword_new.push_str(word);
-            //     keyword_new.push_str("+");
-            // }
-
-            // keyword_new.pop();
 
                         
 
@@ -305,57 +332,64 @@ impl EventHandler for Handler {
                     }
                 }
            }
-            
-            
+
+           
+        },
 
 
-        }
+        _ if _test_command == command=> {
+            let msg = msg.channel_id.send_message(&ctx.http, |m| {
+                m.content("Hello, World!");
+                m.embed(|e| {
+                    e.title("This is a title");
+                    e.description("This is a description");
+                    e.image("attachment://ferris_eyes.png");
+                    e.fields(vec![
+                        ("This is the first field", "This is a field body", true),
+                        ("This is the second field", "Both of these fields are inline", true),
+                    ]);
+                    e.field("This is the third", "This is not an inline field", false);
+                    e.footer(|f| {
+                        f.text("This is a footer");
 
-        else if msg.content == "p!test"{
-            
-                    let msg = msg.channel_id.send_message(&ctx.http, |m| {
-                        m.content("Hello, World!");
-                        m.embed(|e| {
-                            e.title("This is a title");
-                            e.description("This is a description");
-                            e.image("attachment://ferris_eyes.png");
-                            e.fields(vec![
-                                ("This is the first field", "This is a field body", true),
-                                ("This is the second field", "Both of these fields are inline", true),
-                            ]);
-                            e.field("This is the third", "This is not an inline field", false);
-                            e.footer(|f| {
-                                f.text("This is a footer");
-        
-                                f
-                            });
-        
-                            e
-                        });
-                        m
+                        f
                     });
-        
-                    if let Err(why) = msg {
-                        println!("Error sending message: {:?}", why);
-                    }
 
-        }
+                    e
+                });
+                m
+            });
 
-        else if msg.content.starts_with(prefix){
+            if let Err(why) = msg {
+                println!("Error sending message: {:?}", why);
+            }
+
+            
+
+        },
+             
+
+             
+            
+            _ => {
+                cmd_found = false;
+                
+            }
+        };
+
+
+
+
+        if msg.content.starts_with(prefix) && !cmd_found{
             if let Err(why) = msg.channel_id.say(&ctx.http, "This command doesn't exist, yet! ¯\\_(ツ)_/¯") {
                 println!("Error sending message: {:?}", why);
             }
-        }
+        };
 
 
     }
 
-    // Set a handler to be called on the `ready` event. This is called when a
-    // shard is booted, and a READY payload is sent by Discord. This payload
-    // contains data like the current user's guild Ids, current user data,
-    // private channels, and more.
-    //
-    // In this case, just print what the current user's username is.
+   
     fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
     }
@@ -367,18 +401,18 @@ fn main() {
     thread::spawn(
         ||{
 
-            let mut ip:&str;
+            // let mut ip:&str;
 
             let port = match env::var("PORT"){
                 Ok(port) => {
                     println!("Found env var PORT : {}",port);
-                    ip = "0.0.0.0";
+                    // ip = "0.0.0.0";
                     port
                 },
                 Err(why) => {
                     println!("Error: {}",why);
                     println!("Defaulting to port 3000");
-                    ip="127.0.0.0";
+                    // ip="127.0.0.0";
                     String::from("3000")
                 }
             };
