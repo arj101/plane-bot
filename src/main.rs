@@ -1,7 +1,9 @@
 
 extern crate meval;
 extern crate tiny_http;
-extern crate webscreenshotlib;
+extern crate serde_json;
+
+mod search;
 
 use tiny_http::{Server, Response};
 
@@ -10,7 +12,6 @@ use std::{
     env,
     fs,
     thread,
-    time
 };
 
 
@@ -23,7 +24,7 @@ use rand::{prelude::*,Rng};
 
 
 use serenity::{
-    model::{channel::{Message,Embed}, gateway::Ready},
+    model::{channel::{Message}, gateway::Ready},
     prelude::*,
 };
 
@@ -47,11 +48,6 @@ impl EventHandler for Handler {
 
 
 
-
-   
-
-      
-
         let prefix                 = "p!";
 
         let _ping_command          = format!("{}ping",prefix);
@@ -66,6 +62,7 @@ impl EventHandler for Handler {
         let _random_command        = format!("{}random",prefix);
         let _search_command        = format!("{}search",prefix);
         let _test_command          = format!("{}test",prefix);
+        let _add_command_command   = format!("{}addCommand",prefix);
  
 
 
@@ -77,6 +74,68 @@ impl EventHandler for Handler {
                     println!("Error sending message: {:?}", why);
                 };
 
+                
+                
+            },
+
+            _ if  _add_command_command == command => {
+
+
+                let mut iter = msg.content.split(" ").filter(|word| word.len() >= 1);
+                let _ = iter.next();
+
+                if let Some(cmd) = iter.next(){
+                    
+                     
+                    if let Some(reply) = iter.next(){
+
+                         match env::var("FIREBASE_ACCESS_TOKEN"){
+                             Ok(token)=> {
+
+                        let resp = ureq::patch(&format!("https://plane-bot.firebaseio.com/commands.json?access_token={}",token)).send_json(ureq::json!({cmd:reply}));
+
+                        if resp.ok() {
+                            println!("Succesfully added custom command: {}",cmd);
+                            println!("Reply set to: {}",reply);
+                            if let Err(why) = msg.channel_id.say(&ctx.http, "Succesfully added custom command!") {
+                                println!("Error sending message: {:?}", why);
+                            };
+            
+                        } else {
+
+                            let status_code = resp.status();
+
+                            let response = &resp.into_string().unwrap_or_default();
+
+                            println!("Error adding custom command: {}: {}",status_code,response);
+                            if let Err(why) = msg.channel_id.say(&ctx.http, format!("Error adding custom command. Status code:{} , Response: {}",status_code, response)) {
+                                println!("Error sending message: {:?}", why);
+                            };
+                        };
+                    },
+                    Err(why) => {
+                        println!("Error while looking up firebase access token: {:?}",why);
+                        if let Err(why) = msg.channel_id.say(&ctx.http, "Cannot find firebase access token in environment variables.") {
+                            println!("Error sending message: {:?}", why);
+                        };
+                    }
+                }
+                    }else{
+                        println!("Reply for command to add not found!");
+                        if let Err(why) = msg.channel_id.say(&ctx.http,"Reply for command to add not found!") {
+                            println!("Error sending message: {:?}", why);
+                        };
+                    }
+                    
+                }else {
+                    println!("Command to add not found!");
+                    if let Err(why) = msg.channel_id.say(&ctx.http,"Command to add not found!") {
+                        println!("Error sending message: {:?}", why);
+                    };
+                }
+
+
+                
                 
                 
             },
@@ -267,135 +326,9 @@ impl EventHandler for Handler {
         },
 
         _ if _search_command == command=> {
-            let mut iter = msg.content.split("\"")
-            .flat_map(|message| message.split("“"))
-                .flat_map(|message| message.split("\n"))
-                    .flat_map(|message| message.split("”"))
-                        .filter(|word| word.len() >= 1);
-                        
-            let _ = iter.next();
-            let  keyword = if let Some(key) = iter.next(){
-                                key
-                            }else {
-                                "Airbus A350"
-                            };
-
-                        
-
-            let mut search_engine:String = if let Some(engine) = iter.next(){
-                                    engine.to_lowercase()
-                                }else{
-                                    String::from("duckduckgo")
-                                };
-
-            search_engine.retain(|c|  c !=' ');
 
 
-            let  search_engine = search_engine.as_str();
-
-
-            println!("{} {}",keyword,search_engine);
-                
-           match search_engine {
-               "duckduckgo" => {
-                   let keyword = keyword.replace(" ","+");
-                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://duckduckgo.com/?q={}",keyword)) {
-                        println!("Error sending message: {:?}", why);
-                    }
-                    let link = format!("https://duckduckgo.com/?q={}",keyword);
-
-                    let image_data = webscreenshotlib::screenshot_tab(
-                        link.as_str(),
-                        webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
-        
-                    if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
-                        println!("Error: {}",why);
-                    }
-        
-        
-                    let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
-                },
-
-                "bing" => {
-                    let keyword = keyword.replace(" ","+");
-                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://www.bing.com/search?q={}",keyword)) {
-                        println!("Error sending message: {:?}", why);
-                    }
-
-                    let link = format!("https://www.bing.com/search?q={}",keyword);
-
-                    let image_data = webscreenshotlib::screenshot_tab(
-                        link.as_str(),
-                        webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
-        
-                    if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
-                        println!("Error: {}",why);
-                    }
-        
-        
-                    let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
-                },
-                "google" => {
-
-           
-                    let keyword = keyword.replace(" ","+");
-                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://google.com/search?q={}",keyword)) {
-                        println!("Error sending message: {:?}", why);
-                    }
-
-                    let link = format!("https://google.com/search?q={}",keyword);
-
-                    let image_data = webscreenshotlib::screenshot_tab(
-                        link.as_str(),
-                        webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
-        
-                    if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
-                        println!("Error: {}",why);
-                    }
-        
-        
-                    let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
-
-                },
-
-                "wikipedia" => {
-                    let keyword = keyword.replace(" ","_");
-                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://en.wikipedia.org/wiki/{}",keyword)) {
-                        println!("Error sending message: {:?}", why);
-                    }
-                    let link = format!("https://en.wikipedia.org/wiki/{}",keyword);
-
-                    let image_data = webscreenshotlib::screenshot_tab(
-                        link.as_str(),
-                        webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
-        
-                    if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
-                        println!("Error: {}",why);
-                    }
-        
-        
-                    let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
-                },
-
-                _=> {
-                    let keyword = keyword.replace(" ","+");
-                    if let Err(why) = msg.channel_id.say(&ctx.http,format!("https://duckduckgo.com/?q={}",keyword)) {
-                        println!("Error sending message: {:?}", why);
-                    }
-                    let link = format!("https://duckduckgo.com/?q={}",keyword);
-
-                    let image_data = webscreenshotlib::screenshot_tab(
-                        link.as_str(),
-                        webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
-        
-                    if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
-                        println!("Error: {}",why);
-                    }
-        
-        
-                    let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
-                }
-           }
+            search::search(&msg, &ctx);
 
            
         },
@@ -403,61 +336,111 @@ impl EventHandler for Handler {
 
         _ if _test_command == command=> {
 
-            let image_data = webscreenshotlib::screenshot_tab(
-                "https://plane-bot.herokuapp.com",
-                webscreenshotlib::OutputFormat::PNG, 80, false, 1024, 800, "").unwrap_or_default();
+        
 
-            if let Err(why) =  webscreenshotlib::write_screenshot("./screenshot.png", image_data){
-                println!("Error: {}",why);
+        
+            let msg = msg.channel_id.send_message(&ctx.http, |m| {
+                m.content("Hello, World!");
+                m.embed(|e| {
+                    e.title("This is a title");
+                    e.description("This is a description");
+                    e.image("attachment://screenshot.png");
+                    e.fields(vec![
+                        ("This is the first field", "This is a field body", true),
+                        ("This is the second field", "Both of these fields are inline", true),
+                    ]);
+                    e.field("This is the third", "This is not an inline field", false);
+                    e.footer(|f| {
+                        f.text("This is a footer");
+
+                        f
+                    });
+
+                    e
+                });
+                m
+            });
+
+            if let Err(why) = msg {
+                println!("Error sending message: {:?}", why);
             }
-
-
-            let _ = msg.channel_id.send_files(&ctx.http,vec!["./screenshot.png"],|m| m.content(""));
-
-
-            // let sec = time::Duration::from_secs(1u64);
-
-            // thread::sleep(sec);
-
-            // let msg = msg.channel_id.send_message(&ctx.http, |m| {
-            //     m.content("Hello, World!");
-            //     m.embed(|e| {
-            //         e.title("This is a title");
-            //         e.description("This is a description");
-            //         e.image("attachment://screenshot.png");
-            //         e.fields(vec![
-            //             ("This is the first field", "This is a field body", true),
-            //             ("This is the second field", "Both of these fields are inline", true),
-            //         ]);
-            //         e.field("This is the third", "This is not an inline field", false);
-            //         e.footer(|f| {
-            //             f.text("This is a footer");
-
-            //             f
-            //         });
-
-            //         e
-            //     });
-            //     m
-            // });
-
-            // if let Err(why) = msg {
-            //     println!("Error sending message: {:?}", why);
-            // }
 
             
 
         },
-             
-
-             
+              
             
             _ => {
+
+
                 cmd_found = false;
                 
             }
         };
 
+
+        if msg.content.starts_with(prefix) && !cmd_found{
+
+            println!("Command not found in code, starting to lookup database");
+
+            let command_without_prefix = crop_letters(&msg.content, 2);
+
+            println!("command without prefix: {}",command_without_prefix);
+
+            let resp = ureq::get("https://plane-bot.firebaseio.com/commands.json")
+            .send_string("");
+
+
+            let response:String;
+
+
+
+            if resp.ok() {
+
+                response = resp.into_string().unwrap_or_default();
+                println!("GET request to firebase database succesful!");
+
+            } else {
+
+                println!("Error sending GET request to firebase database: {}: {}", resp.status(), resp.into_string().unwrap_or_default());
+                response = String::from("Error sending GET request to firebase database");
+
+            }
+
+
+            let v:serde_json::Value = if let Ok(cmd_and_resps) = serde_json::from_str(&response){
+                cmd_and_resps
+            }else {
+                serde_json::from_str("parse error while converting to serde::json from str").unwrap_or_default()
+            };
+
+            if let Some(cmd_resp) = v.get(command_without_prefix){
+
+                let mut cmd_resp = format!("{}",cmd_resp);
+
+                cmd_resp.pop();
+                cmd_resp = crop_letters(&cmd_resp, 1).to_string();
+
+                let mut iter = cmd_resp.split("&%nm%").filter(|each_message| each_message.len() >= 1);
+
+                for message in iter{
+                    if let Err(why) = msg.channel_id.say(&ctx.http,message ) {
+                        println!("Error sending message: {:?}", why);
+                    }
+                }
+
+                println!("Response for command {} found in database: {}",command_without_prefix,cmd_resp);
+
+              
+
+                cmd_found = true;
+
+            }else {
+                println!("Command {} not found in firebase database",command_without_prefix);
+                cmd_found = false;
+            }
+
+        }
 
 
 
