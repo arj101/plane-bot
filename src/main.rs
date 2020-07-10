@@ -215,10 +215,37 @@ impl EventHandler for Handler {
                 let mut iter = msg.content.split(" ").filter(|word| word.len() >= 1);
                 let _ = iter.next();
 
+
+
                 if let Some(cmd) = iter.next(){
                     
+                    let cmd_reply_iter = iter.clone();
+
+                    let mut cmd_reply = String::new();
+
+                    for word in cmd_reply_iter{
+                        &cmd_reply.push_str(&format!("{} ",word));
+                    }
+
+                    cmd_reply.pop();
+
+    
+                    let iter_reply = cmd_reply.split(" ").filter(|word| word.len() >= 1);
+
+                    let mut cmd_reply_formattted  = String::new();
+
+                    for word in iter_reply{
+                        cmd_reply_formattted.push_str(&format!("{} ",word));
+                    }
+
+                    cmd_reply_formattted.pop();
+
+                    println!("cmd reply: {}",cmd_reply_formattted);
+
+
+
                      
-                    if let Some(reply) = iter.next(){
+                    if cmd_reply_formattted.len() >= 1{
 
                          match env::var("FIREBASE_API_KEY"){
                              Ok(api_key)=> {
@@ -236,12 +263,12 @@ impl EventHandler for Handler {
                             let  id = String::from(resp_json.get("idToken").unwrap().as_str().unwrap());
 
 
-                        let resp = ureq::patch(&format!("https://plane-bot.firebaseio.com/commands.json?auth={}",id)).send_json(ureq::json!({cmd:reply}));
+                        let resp = ureq::patch(&format!("https://plane-bot.firebaseio.com/commands.json?auth={}",id)).send_json(ureq::json!({cmd:cmd_reply_formattted}));
 
                         if resp.ok() {
 
                             println!("Succesfully added custom command: {}",cmd);
-                            println!("Reply set to: {}",reply);
+                            println!("Reply set to: {}",cmd_reply_formattted);
                             if let Err(why) = msg.channel_id.say(&ctx.http, "Succesfully added custom command!") {
                                 println!("Error sending message: {:?}", why);
                             };
