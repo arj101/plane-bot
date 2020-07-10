@@ -133,13 +133,12 @@ impl EventHandler for Handler {
                                                 let resp = ureq::patch(&format!("https://plane-bot.firebaseio.com/commands/{}.json?auth={}",cmd,id_token)).send_json(ureq::json!(serde_json::Value::Null));
 
                                                 if resp.ok(){
+        
             
-                                                    let status_code = resp.status();
             
+                                                    println!("Succesfully deleted command: `{}`",cmd);
             
-                                                    println!("Succesfully deleted command, {}.\nStatus code: {}",cmd,status_code);
-            
-                                                    if let Err(why) = msg.channel_id.say(&ctx.http, format!("Succesfully deleted command, {}.\nStatus code: {}",cmd,status_code)) {
+                                                    if let Err(why) = msg.channel_id.say(&ctx.http, format!("Succesfully deleted command: `{}`",cmd)) {
                                                         println!("Error sending message: {:?}", why);
                                                     };
             
@@ -159,9 +158,6 @@ impl EventHandler for Handler {
                                         },
                                         None => {}
                                     };
-
-
-                                  
 
 
 
