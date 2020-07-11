@@ -10,10 +10,13 @@ So... here are all the commands! 🙂️
 `tail or head` :    which one?
 `roll`         :    rolls a die!
 `random [x] [y]` : give a random number between number x and y 
-
+`addCommad [command] [reply]`: adds custom command!
+`deleteCommand [custom command]` : deletes custom command
 
 **Note: for command random, x needs to be the smaller number and y the bigger number.
-Making both the same number will not work!**
+Making both the same number will not work!
 
-*White spaces are now not required for command `eval` anymore :)*
-*Current prefix `p!`*
+Admin permissions are required for command deleteCommand.
+**
+
+
