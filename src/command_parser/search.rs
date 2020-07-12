@@ -1,3 +1,7 @@
+
+
+
+
 pub fn search(msg: &serenity::model::channel::Message, ctx: &serenity::client::Context){
 
     let mut iter = msg.content.split("\"")
