@@ -1,4 +1,5 @@
-use rand::{prelude::*,Rng};
+
+use super::*;
 
 pub fn rand(msg: &serenity::model::channel::Message, ctx: &serenity::client::Context){
     let mut no_err = true;

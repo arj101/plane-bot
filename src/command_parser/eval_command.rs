@@ -1,4 +1,5 @@
 
+use super::*;
 
 pub fn eval(msg: &serenity::model::channel::Message, ctx: &serenity::client::Context){
     match meval::eval_str(crop_letters(&msg.content, 6)){
@@ -17,10 +18,4 @@ pub fn eval(msg: &serenity::model::channel::Message, ctx: &serenity::client::Con
         }
     };
 
-}
-fn crop_letters(s: &str, pos: usize) -> &str {
-    match s.char_indices().skip(pos).next() {
-        Some((pos, _)) => &s[pos..],
-        None => "",
-    }
 }

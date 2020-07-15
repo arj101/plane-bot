@@ -1,4 +1,5 @@
-use std::env;
+use super::*;
+
 
 pub fn delete(msg: &serenity::model::channel::Message, ctx: &serenity::client::Context){
     let member = &msg.member;

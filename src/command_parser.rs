@@ -8,6 +8,7 @@ mod delete_command;
 mod help_command;
 mod eval_command;
 mod random_commands;
+use super::*;
 
 
 
@@ -243,9 +244,3 @@ pub fn parse(msg: &serenity::model::channel::Message, ctx: &serenity::client::Co
 
 }
 
- fn crop_letters(s: &str, pos: usize) -> &str {
-    match s.char_indices().skip(pos).next() {
-        Some((pos, _)) => &s[pos..],
-        None => "",
-    }
-}

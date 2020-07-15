@@ -9,7 +9,7 @@ mod command_parser;
 
 
 use tiny_http::{Server, Response};
-
+use rand::{prelude::*,Rng};
 
 use std::{thread,env,fs};
 
@@ -93,4 +93,10 @@ fn main() {
 
 
 
-
+//copy pasted from StackOverFlow 😁
+fn crop_letters(s: &str, pos: usize) -> &str {
+    match s.char_indices().skip(pos).next() {
+        Some((pos, _)) => &s[pos..],
+        None => "",
+    }
+}
