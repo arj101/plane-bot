@@ -21,7 +21,7 @@ pub fn parse(msg: &serenity::model::channel::Message, ctx: &serenity::client::Co
         Some(cmd) => cmd,
         None => {
             cmd_found = false;
-            "a781gh487c892c2ubgy"
+            "__command__not__found___"
         }
 
     };
