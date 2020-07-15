@@ -4,13 +4,10 @@ extern crate tiny_http;
 extern crate serde_json;
 
 
-mod command_parser;
-
 
 
 use tiny_http::{Server, Response};
 use rand::{prelude::*,Rng};
-
 use std::{thread,env,fs};
 
 
@@ -18,6 +15,10 @@ use serenity::{
     model::{channel::{Message}, gateway::Ready},
     prelude::*,
 };
+
+
+mod command_parser;
+
 
 struct Handler;
 
