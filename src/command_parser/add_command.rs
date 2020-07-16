@@ -40,6 +40,16 @@ pub fn add(msg: &serenity::model::channel::Message, ctx: &serenity::client::Cont
              match env::var("FIREBASE_API_KEY"){
                  Ok(api_key)=> {
                      println!("checking for auth");
+
+            let  auth_token = &AUTH_TOKEN;
+
+            let auth_token = auth_token.lock();
+
+            let  auth_token = &*auth_token.as_ref().unwrap();
+
+            println!("auth token = {}",&auth_token);
+
+
             
             let id_token_resp = ureq::post(&format!("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={}",api_key)).set("Content-Type", "application/json").send_json(ureq::json!({"returnSecureToken":true}));
 

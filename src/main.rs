@@ -8,7 +8,7 @@ extern crate serde_json;
 
 use tiny_http::{Server, Response};
 use rand::{prelude::*,Rng};
-use std::{thread,env,fs};
+use std::{thread,env,fs,sync::Arc};
 
 
 use serenity::{
@@ -18,6 +18,8 @@ use serenity::{
 
 
 mod command_parser;
+
+use lazy_static::lazy_static;
 
 
 struct Handler;
@@ -33,6 +35,11 @@ impl EventHandler for Handler {
         println!("{} is connected!", ready.user.name);
     }
 }
+
+lazy_static! {
+    static ref AUTH_TOKEN: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(Some(String::from("diode"))));
+}
+
 
 
 fn main() {
