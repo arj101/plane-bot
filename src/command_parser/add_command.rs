@@ -41,50 +41,39 @@ pub fn add(msg: &serenity::model::channel::Message, ctx: &serenity::client::Cont
                  Ok(api_key)=> {
                      println!("checking for auth");
 
-            let  auth_token = &AUTH_TOKEN;
+            
+            let mut  auth_token = AUTH_TOKEN.lock();
 
-            let auth_token = auth_token.lock();
+            if let None = auth_token.as_ref() {
+                match refresh_auth_token(&api_key){
+                    Ok(token_new) => *auth_token = Some(token_new),
+                    Err(err) => println!("ERROR while refreshing auth token: {}",err) 
+                }
+            }
 
-            let  auth_token = &*auth_token.as_ref().unwrap();
 
-            println!("auth token = {}",&auth_token);
+            if let Err(why) =  add_custom_command_half_front_end(&msg, &ctx, cmd, &cmd_reply_formattted, auth_token.as_ref().expect("Error while reading auth token")){
 
+                println!("Error adding custom command,{}\nTrying again with new auth token! ",why);
+
+                match refresh_auth_token(&api_key){
+                    Ok(token_new) => *auth_token = Some(token_new),
+                    Err(err) => println!("ERROR while refreshing auth token: {}",err) 
+                }
+
+                if let Err(why) = add_custom_command_half_front_end(&msg, &ctx, cmd, &cmd_reply_formattted, auth_token.as_ref().expect("Error while reading auth token")){
+                    println!("Error adding custom command: {}",why);
+
+                    if let Err(why) = msg.channel_id.say(&ctx.http, format!("Error adding custom command: `{}`",why)) {
+                        println!("Error sending message: {:?}", why);
+                    };
+
+                }
 
             
-            let id_token_resp = ureq::post(&format!("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={}",api_key)).set("Content-Type", "application/json").send_json(ureq::json!({"returnSecureToken":true}));
+            }
 
-
-            if id_token_resp.ok(){
-
-                let response = &id_token_resp.into_string().unwrap_or_default();
-
-                let resp_json: serde_json::Value = serde_json::from_str(response).unwrap_or_default();
-
-                let  id = String::from(resp_json.get("idToken").unwrap().as_str().unwrap());
-
-
-            let resp = ureq::patch(&format!("https://plane-bot.firebaseio.com/commands.json?auth={}",id)).send_json(ureq::json!({cmd:cmd_reply_formattted}));
-
-            if resp.ok() {
-
-                println!("Succesfully added custom command: {}",cmd);
-                println!("Reply set to: {}",cmd_reply_formattted);
-                if let Err(why) = msg.channel_id.say(&ctx.http, "Succesfully added custom command!") {
-                    println!("Error sending message: {:?}", why);
-                };
-
-            } else {
-
-                let status_code = resp.status();
-
-                let response = &resp.into_string().unwrap_or_default();
-
-                println!("Error adding custom command: {}: {}",status_code,response);
-                if let Err(why) = msg.channel_id.say(&ctx.http, format!("Error adding custom command. Status code:{} , Response: {}",status_code, response)) {
-                    println!("Error sending message: {:?}", why);
-                };
-            };
-        }
+   
         },
         Err(why) => {
             println!("Error while looking up firebase access token: {:?}",why);
@@ -110,4 +99,57 @@ pub fn add(msg: &serenity::model::channel::Message, ctx: &serenity::client::Cont
 
     
     
+
 }
+
+
+fn add_custom_command_half_front_end(msg: &serenity::model::channel::Message, ctx: &serenity::client::Context, cmd:&str, cmd_reply: &str,auth_token: &str) -> Result<(),String>{
+
+    let resp = add_custom_command(cmd, &cmd_reply,auth_token);
+        
+    match resp{
+        Ok(_) => {
+            println!("Succesfully added custom command: {}",cmd);
+            println!("Reply set to: {}",cmd_reply);
+            if let Err(why) = msg.channel_id.say(&ctx.http, "Succesfully added custom command!") {
+                println!("Error sending message: {:?}", why);
+            }
+
+            Ok(())
+            
+        },
+        Err(why) => {
+
+            println!("Error adding custom command. ERROR: {}",why);
+
+           Err(why)
+
+        }
+    }
+
+}
+
+
+
+fn add_custom_command(command: &str,reply:&str, auth: &str) -> Result<(),String>{
+
+    let resp = ureq::patch(&format!("https://plane-bot.firebaseio.com/commands.json?auth={}",auth)).send_json(ureq::json!({command:reply}));
+    if resp.ok(){
+        Ok(())
+    }else{
+        let status_code = resp.status();
+        let response = &resp.into_string().unwrap_or_default();
+        Err(format!("Error while sending PATCH request to database. Status code:  {}. Response: {}",status_code,response))
+    }
+
+}
+
+
+
+
+
+// Err(why) => {
+//     println!("Error adding custom command: {}",why);
+//     if let Err(why) = msg.channel_id.say(&ctx.http, format!("Error adding custom command: {}", why)) {
+//     println!("Error sending message: {:?}", why);
+// };

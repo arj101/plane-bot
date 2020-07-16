@@ -38,61 +38,37 @@ pub fn delete(msg: &serenity::model::channel::Message, ctx: &serenity::client::C
                         let _ = iter.next();
                         let cmd = iter.next();
 
+
+                        let mut auth_token = AUTH_TOKEN.lock();
+
+
+                        
+
                         if let Some(cmd) = cmd{
 
-                            let id_token = ureq::post(&format!("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={}",key)).set("Content-Type", "application/json").send_json(ureq::json!({"returnSecureToken":true}));
+                            if let None = auth_token.as_ref() {
+                                match refresh_auth_token(&key){
+                                    Ok(token_new) => *auth_token = Some(token_new),
+                                    Err(err) => println!("ERROR while refreshing auth token: {}",err) 
+                                }
+                            }
 
-                            if id_token.ok(){
+                            if let Err(why) = delete_custom_command_half_front_end(&msg, &ctx, cmd, auth_token.as_ref().expect("Error while reading AUTH_TOKEN")){
+                                println!("Error deleting custom command,{}\nTrying again with new auth token! ",why);
 
+                                match refresh_auth_token(&key){
+                                    Ok(token_new) => *auth_token = Some(token_new),
+                                    Err(err) => println!("ERROR while refreshing auth token: {}",err) 
+                                }
 
-                                let response = id_token.into_string().unwrap_or_default();
-                                let response_json: serde_json::Value = serde_json::from_str(&response).unwrap_or_default();
+                                if let Err(why) = delete_custom_command_half_front_end(&msg, &ctx, cmd, auth_token.as_ref().expect("Error while reading AUTH_TOKEN")){
+                                    println!("Error deleting custom command: {}",why);
 
-                              
-                                match response_json.get("idToken"){
-                                    Some(id_token) => {
-                                        if let Some(id_token) = id_token.as_str(){
-                                            let resp = ureq::patch(&format!("https://plane-bot.firebaseio.com/commands/{}.json?auth={}",cmd,id_token)).send_json(ureq::json!(serde_json::Value::Null));
+                                    if let Err(why) = msg.channel_id.say(&ctx.http, format!("Error deleting custom command: `{}`",why)) {
+                                        println!("Error sending message: {:?}", why);
+                                    };
+                                }
 
-                                            if resp.ok(){
-    
-        
-        
-                                                println!("Succesfully deleted command: `{}`",cmd);
-        
-                                                if let Err(why) = msg.channel_id.say(&ctx.http, format!("Succesfully deleted command: `{}`",cmd)) {
-                                                    println!("Error sending message: {:?}", why);
-                                                };
-        
-        
-                                            }else {
-                                                let status_code = resp.status();
-        
-                                                let response = resp.into_string().unwrap_or_default();
-        
-                                                println!("Error while sending DELETE request to database. Status code: {:?}, Response: {:?}",status_code,response);
-                                                if let Err(why) = msg.channel_id.say(&ctx.http, format!("Error while sending DELETE request to database. Status code: {:?}, Response: {:?}",status_code,response)) {
-                                                    println!("Error sending message: {:?}", why);
-                                                };
-                                            };
-
-                                        }else{}
-                                    },
-                                    None => {}
-                                };
-
-
-
-
-                            }else{
-                                let status_code = id_token.status();
-
-                                let response = id_token.into_string().unwrap_or_default();
-
-                                println!("Error while requesting id_token to firebase. Status code: {:?}, Response: {:?}",status_code,response);
-                                if let Err(why) = msg.channel_id.say(&ctx.http, format!("Error while requesting id_token to firebase. Status code: {:?}, Response: {:?}",status_code,response)) {
-                                    println!("Error sending message: {:?}", why);
-                                };
                             }
 
 
@@ -123,5 +99,45 @@ pub fn delete(msg: &serenity::model::channel::Message, ctx: &serenity::client::C
                 },
                 None => {}
             };
+
+}
+
+
+fn delete_custom_command(command: &str, auth: &str) -> Result<(),String>{
+
+    let resp = ureq::patch(&format!("https://plane-bot.firebaseio.com/commands/{}.json?auth={}",command,auth)).send_json(ureq::json!(serde_json::Value::Null));
+    if resp.ok(){
+        Ok(())
+    }else{
+        let status_code = resp.status();
+        let response = &resp.into_string().unwrap_or_default();
+        Err(format!("Error while sending PATCH request to database. Status code:  {}. Response: {}",status_code,response))
+    }
+
+}
+
+
+fn delete_custom_command_half_front_end(msg: &serenity::model::channel::Message, ctx: &serenity::client::Context, cmd:&str ,auth_token: &str) -> Result<(),String>{
+
+    let resp = delete_custom_command(cmd,auth_token);
+        
+    match resp{
+        Ok(_) => {
+            println!("Succesfully deleted custom command: `{}` !",cmd);
+            if let Err(why) = msg.channel_id.say(&ctx.http, format!("Succesfully deleted custom command: `{}` !",cmd)) {
+                println!("Error sending message: {:?}", why);
+            }
+
+            Ok(())
+            
+        },
+        Err(why) => {
+
+            println!("Error deleting custom command. ERROR: {}",why);
+
+            Err(why)
+
+        }
+    }
 
 }

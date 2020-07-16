@@ -37,7 +37,7 @@ impl EventHandler for Handler {
 }
 
 lazy_static! {
-    static ref AUTH_TOKEN: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(Some(String::from("diode"))));
+    static ref AUTH_TOKEN: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
 }
 
 
@@ -107,4 +107,47 @@ fn crop_letters(s: &str, pos: usize) -> &str {
         Some((pos, _)) => &s[pos..],
         None => "",
     }
+}
+
+
+fn refresh_auth_token(api_key: &str) -> Result<String,String>{
+
+
+    println!("refreshing auth token....");
+
+
+
+
+    let id_token_resp = ureq::post(&format!("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={}",api_key)).set("Content-Type", "application/json").send_json(ureq::json!({"returnSecureToken":true}));
+
+
+    if id_token_resp.ok(){
+
+        let response = &id_token_resp.into_string().unwrap_or_default();
+
+        let resp_json: serde_json::Value = serde_json::from_str(response).unwrap_or_default();
+
+        match resp_json.get("idToken"){
+            Some(id) => {
+
+                if let Some(id) = id.as_str(){
+                    Ok(String::from(id))
+                }else {
+                    Err(String::from("diode"))
+                }
+            }
+            None => {
+                println!("Response from server didnt contain ID_TOKEN");
+                Err(String::from("Response from server didnt contain ID_TOKEN"))
+                
+            }
+        }
+
+
+    }else {
+        println!("Error in new token request, server didnt respod with OK");
+        return Err(format!("Error in new token request, server didnt respod with OK"))
+    }
+
+
 }
