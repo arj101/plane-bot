@@ -12,6 +12,7 @@ So... here are all the commands! 🙂️
 `random [x] [y]` : give a random number between number x and y 
 `addCommad [command] [reply]`: adds custom command!
 `deleteCommand [custom command]` : deletes custom command
+`randNum`     : gives a 64bit random interger
 
 **Note: for command random, x needs to be the smaller number and y the bigger number.
 Making both the same number will not work!
