@@ -46,7 +46,7 @@ pub fn rand(msg: &serenity::model::channel::Message, ctx: &serenity::client::Con
                      -1i32
                  }
              },
-             None => {
+             None =>  {
                  no_err = false;
                  println!("Error: Higher range not found" );
 
@@ -92,8 +92,17 @@ pub fn tail_or_head(msg: &serenity::model::channel::Message, ctx: &serenity::cli
 pub fn roll(msg: &serenity::model::channel::Message, ctx: &serenity::client::Context){
     let mut rng = rand::thread_rng();
 
-             if let Err(why) = msg.channel_id.say(&ctx.http, format!("You got {} !",rng.gen_range(1,7)) ) {
-                println!("Error sending message: {:?}", why);
-            };
+    if let Err(why) = msg.channel_id.say(&ctx.http, format!("You got {} !",rng.gen_range(1,7)) ) {
+        println!("Error sending message: {:?}", why);
+    };
 
+}
+
+
+pub fn random_num(msg: &serenity::model::channel::Message, ctx: &serenity::client::Context){
+    let rand = random::<i64>();
+
+    if let Err(why) = msg.channel_id.say(&ctx.http, format!("You got {} !",rand) ) {
+        println!("Error sending message: {:?}", why);
+    };
 }

@@ -143,6 +143,8 @@ fn refresh_auth_token(api_key: &str) -> Result<String,String>{
             }
         }
 
+        
+    
 
     }else {
         println!("Error in new token request, server didnt respod with OK");

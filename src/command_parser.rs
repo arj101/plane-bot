@@ -45,6 +45,7 @@ pub fn parse(msg: &serenity::model::channel::Message, ctx: &serenity::client::Co
     let _test_command          = format!("{}test",prefix);  
     let _add_command_command   = format!("{}addCommand",prefix);//not a typo
     let _delete_command_command = format!("{}deleteCommand",prefix);//not a typo
+    let _random_num_command     = format!("{}randNum",prefix);
 
 
 
@@ -130,6 +131,10 @@ pub fn parse(msg: &serenity::model::channel::Message, ctx: &serenity::client::Co
        _ if _search_command == command=> {
         search::search(&msg, &ctx);
        },
+
+       _ if _random_num_command == command => {
+           random_commands::random_num(&msg,&ctx);
+       }
 
 
      _ if _test_command == command=> {

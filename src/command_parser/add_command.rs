@@ -148,8 +148,3 @@ fn add_custom_command(command: &str,reply:&str, auth: &str) -> Result<(),String>
 
 
 
-// Err(why) => {
-//     println!("Error adding custom command: {}",why);
-//     if let Err(why) = msg.channel_id.say(&ctx.http, format!("Error adding custom command: {}", why)) {
-//     println!("Error sending message: {:?}", why);
-// };
