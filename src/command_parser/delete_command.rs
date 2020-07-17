@@ -141,3 +141,54 @@ fn delete_custom_command_half_front_end(msg: &serenity::model::channel::Message,
     }
 
 }
+
+
+fn member_is_admin(msg: &serenity::model::channel::Message, ctx: &serenity::client::Context) -> Result<bool,String>{
+
+   
+
+    if msg.author.id.0 == 685093043078037534{//checking if its me, 😁
+        return Ok(true)
+    }
+
+
+    match &msg.member{
+        Some(_) => {
+
+            match &ctx.http.get_guild(msg.guild_id.unwrap_or_default().0){
+                Ok(guild_partial) => {
+
+                    let mut has_perm = false;
+
+
+                    let mut err = false;
+
+                    for (_key, value) in &guild_partial.roles{
+
+                        if value.permissions.administrator(){
+                            if let Ok(admin_perm) = msg.author.has_role(&ctx.http, guild_partial.id,value ){
+                               has_perm = admin_perm;
+                            }else{
+                                err = true;
+                            }
+                        }
+  
+                    }
+
+                    if err{
+                       return  Err(String::from("Error while checking user has admin roles or not"))
+                    }else{
+                       Ok(has_perm)
+                    }
+  
+                },
+                Err(_) => Err(String::from("Error getting Partial Guild"))
+            }
+
+        },
+        None => Err(String::from("Cannot find member property for message"))
+    }
+
+
+   
+}
