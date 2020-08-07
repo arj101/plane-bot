@@ -3,7 +3,7 @@
 
 ### This bot uses [serenity.rs](https://github.com/serenity-rs/serenity) for interfacing with Discord API.
 
-## * Building and Running
+## Building and Running
 
   1. First of all install Rustup from https://rust-lang.org if you haven't.
   
