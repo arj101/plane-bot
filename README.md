@@ -1,5 +1,5 @@
 # Plane 🛩️ Bot
-### a simple discord bot using serenity.rs!
+### A simple discord bot using serenity.rs!
 
 
 
