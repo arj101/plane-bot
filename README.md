@@ -11,5 +11,9 @@
   3. Open terminal inside the root directory of the cloned repo, or `cd` into it.
   
   4. Run
-      * `cargo run` or
-      * `cargo run --release` for optimized build!
+      * `cargo run` or...
+      * `cargo run --release` for optimized build and running!
+      
+      
+      * Run `cargo build` for just building or...  
+      * `cargo build --release` for optmized builds!
